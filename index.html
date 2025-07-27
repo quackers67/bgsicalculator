@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGSI Secret Odds Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a more game-like feel, if desired. Otherwise, Tailwind's default Inter is fine. */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        html, body { /* Added html to ensure full height */
+            height: 100%;
+            width: 100%;
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Remove default body padding */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Default (Midnight) Theme Variables - will be overridden by savedTheme or lava */
+            --bg-color: #1a202c;
+            --container-bg: #2d3748;
+            --text-color: #e2e8f0;
+            --input-bg: #4a5568;
+            --input-border: #6b7280;
+            --focus-color: #63b3ed;
+            --button-bg: #63b3ed;
+            --button-text: #1a202c;
+            --divider-color: #4a5568;
+            --result-box-bg: #1a202c;
+            --result-label-color: #cbd5e0;
+            --result-value-color: #63b3ed;
+            --input-gradient-start: #4a5568;
+            --input-gradient-end: #2d3748;
+            --result-gradient-start: #1a202c;
+            --result-gradient-end: #2d3748;
+            --body-gradient-start: #1a202c; /* Default for Midnight */
+            --body-gradient-end: #2c3e50;   /* Adjusted for more contrast */
+            --container-gradient-start: #2d3748; /* Default for Midnight */
+            --container-gradient-end: #3a4a5a;   /* Default for Midnight */
+            --discord-button-bg: #5865F2; /* Discord Blue */
+            --discord-button-text: #ffffff;
+            --discord-button-hover-bg: #7289DA; /* Lighter Discord Blue on hover */
+
+            background-color: var(--bg-color);
+            background-image: linear-gradient(to bottom right, var(--body-gradient-start), var(--body-gradient-end)); /* Apply body gradient */
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* min-height: 100vh; Removed as html, body are 100% height now */
+            padding: 1rem; /* Keep padding for overall spacing */
+            position: relative; /* Needed for absolute positioning of settings icon */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+
+        /* Light Theme Variables */
+        body[data-theme="light"] {
+            --bg-color: #f7fafc;
+            --container-bg: #ffffff;
+            --text-color: #2d3748; /* Dark text for light background */
+            --input-bg: #edf2f7;
+            --input-border: #cbd5e0;
+            --focus-color: #4299e1;
+            --button-bg: #4299e1;
+            --button-text: #ffffff;
+            --divider-color: #e2e8f0;
+            --result-box-bg: #f0f4f8;
+            --result-label-color: #4a5568;
+            --result-value-color: #3182ce;
+            --input-gradient-start: #edf2f7;
+            --input-gradient-end: #e2e8f0;
+            --result-gradient-start: #f0f4f8;
+            --result-gradient-end: #e2e8f0;
+            --body-gradient-start: #f7fafc;
+            --body-gradient-end: #dce3eb; /* Adjusted for more contrast */
+            --container-gradient-start: #ffffff;
+            --container-gradient-end: #f0f4f8;
+            --discord-button-bg: #7289DA; /* Lighter Discord Blue */
+            --discord-button-text: #ffffff;
+            --discord-button-hover-bg: #6A7EC0; /* Slightly darker light Discord Blue */
+        }
+
+        /* Bubblegum Theme Variables */
+        body[data-theme="bubblegum"] {
+            --bg-color: #ffebee; /* Lightest pink */
+            --container-bg: #f8bbd0; /* Soft pink */
+            --text-color: #880e4f; /* Darker pink for text */
+            --input-bg: #fce4ec; /* Even lighter pink for inputs */
+            --input-border: #f48fb1; /* Medium pink border */
+            --focus-color: #e91e63; /* Vibrant pink for focus */
+            --button-bg: #e91e63; /* Vibrant pink for buttons */
+            --button-text: #ffffff;
+            --divider-color: #f06292; /* Muted pink for dividers */
+            --result-box-bg: #fce4ec; /* Lightest pink for result box */
+            --result-label-color: #c2185b; /* Dark pink for labels */
+            --result-value-color: #ff4081; /* Accent pink for values */
+            --input-gradient-start: #fce4ec;
+            --input-gradient-end: #f8bbd0;
+            --result-gradient-start: #fce4ec;
+            --result-gradient-end: #f06292;
+            --body-gradient-start: #ffebee;
+            --body-gradient-end: #f4e0e6; /* Adjusted for more contrast */
+            --container-gradient-start: #f8bbd0;
+            --container-gradient-end: #f4aabf;
+            --discord-button-bg: #7289DA; /* Default Discord Blue */
+            --discord-button-text: #ffffff;
+            --discord-button-hover-bg: #6A7EC0;
+        }
+
+        /* Lava Theme Variables */
+        body[data-theme="lava"] {
+            --bg-color: #2c0a0a; /* Deep dark red/brown */
+            --container-bg: #4a1c0c; /* Darker burnt orange */
+            --text-color: #ffedd5; /* Creamy white */
+            --input-bg: #6b2a0c; /* Dark orange/brown */
+            --input-border: #b33a0c; /* Brighter orange */
+            --focus-color: #ff8c00; /* DarkOrange */
+            --button-bg: #e65100; /* Orange 900 */
+            --button-text: #ffffff;
+            --divider-color: #8d3e1b; /* Muted red-brown */
+            --result-box-bg: #3d1508; /* Even darker orange/brown */
+            --result-label-color: #ffb74d; /* Light orange */
+            --result-value-color: #ff7043; /* Bright orange */
+            --input-gradient-start: #6b2a0c;
+            --input-gradient-end: #4a1c0c;
+            --result-gradient-start: #3d1508;
+            --result-gradient-end: #4a1c0c;
+            --body-gradient-start: #2c0a0a;
+            --body-gradient-end: #3d1508; /* Adjusted for more contrast */
+            --container-gradient-start: #4a1c0c;
+            --container-gradient-end: #5a2c1c;
+            --discord-button-bg: #5865F2; /* Default Discord Blue */
+            --discord-button-text: #ffffff;
+            --discord-button-hover-bg: #7289DA;
+        }
+
+        /* Space Theme Variables */
+        body[data-theme="space"] {
+            --bg-color: #100f2a; /* Deep space blue */
+            --container-bg: #201f40; /* Slightly lighter space blue */
+            --text-color: #e0e0f0; /* Star-like white */
+            --input-bg: #303050; /* Darker blue/grey */
+            --input-border: #505070; /* Muted purple/blue */
+            --focus-color: #80aaff; /* Cosmic light blue */
+            --button-bg: #404080; /* Cosmic blue/purple */
+            --button-text: #ffffff;
+            --divider-color: #404060; /* Faint star trail grey */
+            --result-box-bg: #050515; /* Very dark space */
+            --result-label-color: #c0c0e0; /* Lighter grey */
+            --result-value-color: #a0c0ff; /* Bright, ethereal blue */
+            --input-gradient-start: #303050;
+            --input-gradient-end: #201f40;
+            --result-gradient-start: #050515;
+            --result-gradient-end: #201f40;
+            --body-gradient-start: #100f2a;
+            --body-gradient-end: #1c1b3a; /* Adjusted for more contrast */
+            --container-gradient-start: #201f40;
+            --container-gradient-end: #302f50;
+            --discord-button-bg: #5865F2; /* Default Discord Blue */
+            --discord-button-text: #ffffff;
+            --discord-button-hover-bg: #7289DA;
+        }
+
+        /* Violet Theme Variables */
+        body[data-theme="violet"] {
+            --bg-color: #3a204a; /* Soft, deep violet */
+            --container-bg: #5a306a; /* Lighter, more vibrant violet */
+            --text-color: #f0e0ff; /* Light lavender */
+            --input-bg: #8a609a; /* Pale violet */
+            --input-border: #a070b0; /* Medium violet */
+            --focus-color: #d02090; /* Bright magenta/fuchsia */
+            --button-bg: #9a40a0; /* Rich violet */
+            --button-text: #ffffff;
+            --divider-color: #7a508a; /* Muted purple */
+            --result-box-bg: #4a2a5a; /* Darker, muted violet */
+            --result-label-color: #e0c0ff; /* Light purple */
+            --result-value-color: #ff00ff; /* Bright fuchsia */
+            --input-gradient-start: #8a609a;
+            --input-gradient-end: #5a306a;
+            --result-gradient-start: #4a2a5a;
+            --result-gradient-end: #5a306a;
+            --body-gradient-start: #3a204a;
+            --body-gradient-end: #4b2b5b; /* Adjusted for more contrast */
+            --container-gradient-start: #5a306a;
+            --container-gradient-end: #6a407a;
+            --discord-button-bg: #5865F2; /* Default Discord Blue */
+            --discord-button-text: #ffffff;
+            --discord-button-hover-bg: #7289DA;
+        }
+
+        /* Water Theme Variables (Updated to be darker) */
+        body[data-theme="water"] {
+            --bg-color: #002633; /* Darker blue background */
+            --container-bg: #003d4d; /* Darker cyan container */
+            --text-color: #e0f7fa; /* Light text */
+            --input-bg: #005a66; /* Muted dark cyan input */
+            --input-border: #00798c; /* Deeper cyan border */
+            --focus-color: #00bcd4; /* Bright cyan for focus */
+            --button-bg: #00838f; /* Darker teal button */
+            --button-text: #ffffff;
+            --divider-color: #004d5a; /* Muted dark cyan divider */
+            --result-box-bg: #00333d; /* Very dark teal */
+            --result-label-color: #a7d9e0; /* Muted light blue for labels */
+            --result-value-color: #4dd0e1; /* Brighter cyan for values */
+            --input-gradient-start: #005a66;
+            --input-gradient-end: #003d4d;
+            --result-gradient-start: #00333d;
+            --result-gradient-end: #003d4d;
+            --body-gradient-start: #002633;
+            --body-gradient-end: #003340; /* Adjusted for more contrast */
+            --container-gradient-start: #003d4d;
+            --container-gradient-end: #004d5a;
+            --discord-button-bg: #5865F2; /* Default Discord Blue */
+            --discord-button-text: #ffffff;
+            --discord-button-hover-bg: #7289DA;
+        }
+
+        /* Toxic Theme Variables - Made more vibrant */
+        body[data-theme="toxic"] {
+            --bg-color: #0a1a0a; /* Even darker green base */
+            --container-bg: #1a3a1a; /* Darker muted green */
+            --text-color: #e0ffe0; /* Brightest green for text */
+            --input-bg: #2a4a2a; /* Muted dark green */
+            --input-border: #40c040; /* Vibrant green border */
+            --focus-color: #30ff30; /* Super vibrant lime green for focus */
+            --button-bg: #20b020; /* Vibrant green button */
+            --button-text: #000000; /* Black text for vibrant green button */
+            --divider-color: #203020; /* Darker divider */
+            --result-box-bg: #051005; /* Deepest dark green */
+            --result-label-color: #b0ffb0; /* Lighter vibrant green label */
+            --result-value-color: #a0ff60; /* Very vibrant green value */
+            --input-gradient-start: #2a4a2a;
+            --input-gradient-end: #1a3a1a;
+            --result-gradient-start: #051005;
+            --result-gradient-end: #1a3a1a;
+            --body-gradient-start: #0a1a0a;
+            --body-gradient-end: #152515; /* Adjusted for more contrast */
+            --container-gradient-start: #1a3a1a;
+            --container-gradient-end: #2a4a2a;
+            --discord-button-bg: #5865F2; /* Default Discord Blue */
+            --discord-button-text: #ffffff;
+            --discord-button-hover-bg: #7289DA;
+        }
+
+        /* Custom Theme Variables (Defaults, will be overridden by JS) */
+        body[data-theme="custom"] {
+            --bg-color: var(--custom-main-bg);
+            --container-bg: var(--custom-container-bg);
+            --text-color: var(--custom-text-color);
+            --focus-color: var(--custom-accent-color);
+            --button-bg: var(--custom-accent-color);
+            --button-text: var(--custom-button-text-color); /* Will be determined by accent contrast */
+            --divider-color: var(--custom-divider-color); /* Derived */
+            --result-box-bg: var(--custom-result-box-bg); /* Derived */
+            --result-label-color: var(--custom-result-label-color); /* Derived */
+            --result-value-color: var(--custom-accent-color);
+            --input-bg: var(--custom-input-bg); /* Derived */
+            --input-border: var(--custom-input-border); /* Derived */
+
+            /* Gradients for custom theme - derived from main custom colors */
+            --body-gradient-start: var(--custom-main-bg);
+            --body-gradient-end: var(--custom-body-gradient-end);
+            --container-gradient-start: var(--custom-container-bg);
+            --container-gradient-end: var(--custom-container-gradient-end);
+            --input-gradient-start: var(--custom-input-bg);
+            --input-gradient-end: var(--custom-input-gradient-end);
+            --result-gradient-start: var(--custom-result-box-bg);
+            --result-gradient-end: var(--custom-result-gradient-end);
+
+            --discord-button-bg: var(--custom-accent-color);
+            --discord-button-text: var(--custom-button-text-color);
+            --discord-button-hover-bg: var(--custom-accent-hover-color); /* Derived */
+        }
+
+
+        .container {
+            background-color: var(--container-bg); /* Fallback */
+            background-image: linear-gradient(to bottom right, var(--container-gradient-start), var(--container-gradient-end)); /* Apply gradient */
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2); /* Stronger shadow */
+            padding: 2.5rem;
+            /* Removed max-width to allow it to fill the screen */
+            width: 100%; /* Ensure it takes full width of its flex container */
+            border: 1px solid var(--divider-color); /* Subtle border */
+            backdrop-filter: blur(8px); /* Apply blur effect */
+            -webkit-backdrop-filter: blur(8px); /* Safari support */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+        input[type="number"],
+        input[type="text"],
+        select {
+            background-color: var(--input-bg);
+            background-image: linear-gradient(to bottom right, var(--input-gradient-start), var(--input-gradient-end)); /* Apply gradient */
+            color: var(--text-color);
+            border: 1px solid var(--input-border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus {
+            border-color: var(--focus-color); /* Blue focus ring */
+            box-shadow: 0 0 0 3px var(--focus-color);
+            outline: none;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .input-group label {
+            margin-right: 0.75rem;
+            min-width: 120px; /* Adjust as needed for alignment */
+            color: var(--text-color);
+        }
+        .input-group input[type="number"] {
+            flex-grow: 1;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem; /* Reduced margin */
+        }
+        .checkbox-container input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid var(--focus-color);
+            border-radius: 0.375rem;
+            background-color: var(--input-bg);
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .checkbox-container input[type="checkbox"]:checked {
+            background-color: var(--focus-color);
+            border-color: var(--focus-color);
+        }
+        .checkbox-container input[type="checkbox"]:checked::after {
+            content: '✔';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--button-text); /* Should be contrasting to focus-color */
+            font-size: 1rem;
+        }
+        .checkbox-container label {
+            margin-left: 0.75rem;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-color); /* Ensure label color matches theme */
+        }
+        button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            font-weight: 700;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            /* Enhanced button shadow */
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.125rem;
+        }
+        button:hover {
+            background-color: var(--focus-color); /* Darker blue on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.5), 0 4px 6px rgba(0, 0, 0, 0.3); /* More pronounced shadow on hover */
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        .result-box {
+            background-color: var(--result-box-bg);
+            background-image: linear-gradient(to bottom right, var(--result-gradient-start), var(--result-gradient-end)); /* Apply gradient */
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border: 1px solid var(--divider-color);
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+        .result-label {
+            font-weight: 600;
+            color: var(--result-label-color);
+        }
+        .result-value {
+            color: var(--result-value-color);
+            font-weight: 700;
+        }
+        .divider {
+            border-left: 1px solid var(--divider-color); /* Feint divider */
+            margin: 0 1.5rem; /* Spacing around divider */
+        }
+        /* Settings Icon and Panel Styles */
+        .settings-icon-container {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+        }
+        .settings-button {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            width: auto; /* Override full width */
+            box-shadow: none; /* Remove button shadow */
+            transition: color 0.2s ease-in-out, transform 0.1s ease-in-out; /* Add transition */
+            display: flex; /* Use flex to center SVG */
+            align-items: center;
+            justify-content: center;
+            filter: none; /* Ensure no filters are applied */
+        }
+        .settings-button:hover {
+            color: var(--focus-color); /* Still use focus color on hover */
+            transform: scale(1.1);
+        }
+        .settings-button svg {
+            width: 2.5rem; /* Increased size */
+            height: 2.5rem; /* Increased size */
+            fill: currentColor; /* Ensure fill is current color */
+        }
+
+        .settings-panel {
+            position: absolute;
+            top: 4rem; /* Below the icon */
+            right: 1rem;
+            background-color: var(--container-bg);
+            border: 1px solid var(--divider-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            width: 250px; /* Fixed width for the panel */
+            backdrop-filter: blur(8px); /* Apply blur effect */
+            -webkit-backdrop-filter: blur(8px); /* Safari support */
+        }
+        .settings-panel h3 {
+            color: var(--text-color);
+        }
+        .settings-panel label {
+            color: var(--text-color);
+        }
+        .settings-panel select {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-color: var(--input-border);
+            background-image: linear-gradient(to bottom right, var(--input-gradient-start), var(--input-gradient-end)); /* Apply gradient */
+        }
+        .settings-panel button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+        }
+
+        /* Discord Button Styles */
+        .discord-button-container {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+        }
+
+        .discord-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--discord-button-bg);
+            color: var(--discord-button-text);
+            font-weight: 600;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            font-size: 1rem;
+        }
+
+        .discord-button:hover {
+            background-color: var(--discord-button-hover-bg); /* Use theme variable for hover */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .discord-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* Custom Theme Inputs */
+        .custom-theme-inputs {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .custom-theme-inputs label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        .custom-theme-inputs input[type="color"] {
+            width: 40px; /* Smaller color swatch */
+            height: 24px;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .container {
+                padding: 1.5rem;
+                border-radius: 1rem;
+            }
+            .input-section {
+                flex-direction: column; /* Stack inputs on small screens */
+            }
+            .divider {
+                border-left: none;
+                border-top: 1px solid var(--divider-color); /* Horizontal divider for small screens */
+                margin: 1.5rem 0;
+            }
+            .result-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .result-value {
+                margin-top: 0.25rem;
+            }
+            .settings-panel {
+                top: 1rem; /* Adjust for smaller screens */
+                left: 1rem; /* Position from left on small screens */
+                right: 1rem; /* Extend to right on small screens */
+                width: auto; /* Auto width for responsiveness */
+            }
+            .discord-button-container {
+                top: 0.5rem; /* Adjust for smaller screens */
+                left: 0.5rem; /* Adjust for smaller screens */
+            }
+            .settings-icon-container {
+                top: 0.5rem; /* Adjust for smaller screens */
+                right: 0.5rem; /* Adjust for smaller screens */
+            }
+        }
+
+        /* Styles for the hide/unhide with tween effect */
+        .secret-pet-container {
+            max-height: 100px; /* Max height when visible */
+            opacity: 1;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+        }
+
+        .secret-pet-container.hidden-transition {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out, padding 0.5s ease-out, margin 0.5s ease-out;
+        }
+
+        /* Text shadow for subtitles */
+        .text-shadow-subtitle {
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6); /* Subtle shadow */
+        }
+    </style>
+</head>
+<body>
+    <div class="discord-button-container">
+        <a href="https://discord.gg/t39mwKs6Qz" target="_blank" class="discord-button">
+            Discord
+        </a>
+    </div>
+
+    <div class="settings-icon-container">
+        <button id="settingsButton" class="settings-button">
+            <!-- Standard Gear Icon (from Heroicons) -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-1.407.419-2.736.934-3.967 1.565l-1.432-.806a1.85 1.85 0 0 0-2.2.26L.236 7.61a1.85 1.85 0 0 0-.26 2.2l.806 1.432c-.631 1.23-.946 2.56-.946 3.967s.315 2.736.946 3.967l-.806 1.432a1.85 1.85 0 0 0 .26 2.2l2.108 2.108a1.85 1.85 0 0 0 2.2.26l1.432-.806c1.23.631 2.56.946 3.967.946s2.736-.315 3.967-.946l1.432.806a1.85 1.85 0 0 0 2.2-.26l2.108-2.108a1.85 1.85 0 0 0 .26-2.2l-.806-1.432c.631-1.23.946-2.56.946-3.967s-.315-2.736-.946-3.967l.806-1.432a1.85 1.85 0 0 0-.26-2.2L20.39 3.517a1.85 1.85 0 0 0-2.2-.26l-1.432.806c-1.23-.631-2.56-.946-3.967-.946ZM12 16.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z" clip-rule="evenodd" />
+            </svg>
+        </button>
+    </div>
+
+    <div id="settingsPanel" class="settings-panel hidden">
+        <h3 class="text-xl font-bold mb-4" style="color: var(--text-color);">Theme Settings</h3>
+        <div class="mb-4">
+            <label for="themeSelect" class="block text-sm font-medium mb-2" style="color: var(--text-color);">Select Theme:</label>
+            <select id="themeSelect" class="w-full p-2 rounded-md">
+                <option value="midnight">Midnight</option>
+                <option value="light">Light</option>
+                <option value="bubblegum">Bubblegum</option>
+                <option value="lava">Lava</option>
+                <option value="space">Space</option>
+                <option value="violet">Violet</option>
+                <option value="water">Water</option>
+                <option value="toxic">Toxic</option>
+                <option value="custom">Custom</option> <!-- Added Custom Theme Option -->
+            </select>
+        </div>
+
+        <div id="customThemeInputs" class="custom-theme-inputs hidden">
+            <label>
+                Main Background:
+                <input type="color" id="customBodyBgColor" value="#1a202c">
+            </label>
+            <label>
+                Container Background:
+                <input type="color" id="customContainerBgColor" value="#2d3748">
+            </label>
+            <label>
+                Text Color:
+                <input type="color" id="customTextColor" value="#e2e8f0">
+            </label>
+            <label>
+                Accent Color:
+                <input type="color" id="customAccentColor" value="#63b3ed">
+            </label>
+            <button id="saveCustomThemeButton" class="mt-4 w-full py-2 px-4 rounded-md">Save Custom Theme</button>
+        </div>
+
+        <button id="closeSettingsButton" class="mt-4 w-full py-2 px-4 rounded-md">Close</button>
+    </div>
+
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center mb-6" style="color: var(--text-color);">BGSI Secret Odds Calculator</h1>
+
+        <div class="mb-4">
+            <label for="baseChanceInput" class="block text-sm font-medium" style="color: var(--text-color);">Base Secret Rarity (1 in ?):</label>
+            <input type="text" id="baseChanceInput" value="33333334" class="focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 33333334, 33.3m, 1b">
+        </div>
+
+        <div class="mb-4">
+            <label for="luckBoostInput" class="block text-sm font-medium" style="color: var(--text-color);">Luck Boost Percentage (%):</label>
+            <input type="number" id="luckBoostInput" value="0" min="0" class="focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <div class="mb-4">
+            <label for="eggsHatchedInput" class="block text-sm font-medium" style="color: var(--text-color);">Number of Eggs to Hatch:</label>
+            <input type="number" id="eggsHatchedInput" value="1" min="1" class="focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <div class="mb-4">
+            <label for="hatchSpeedBoostInput" class="block text-sm font-medium" style="color: var(--text-color);">Hatch Speed Boost (%):</label>
+            <input type="number" id="hatchSpeedBoostInput" value="0" min="0" step="0.1" class="focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-between mt-6 mb-6">
+            <div class="flex-1 pr-4 sm:pr-8">
+                <p class="text-lg font-semibold text-shadow-subtitle" style="color: var(--text-color);">Secret Luck:</p>
+                <div class="input-group">
+                    <label for="totalElixirMultiplierInput">Secret Luck (x):</label>
+                    <input type="number" id="totalElixirMultiplierInput" value="1" min="1" step="1" class="focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <p class="text-lg font-semibold mt-4 mb-3 text-shadow-subtitle" style="color: var(--text-color);">Rifts:</p>
+                <div class="mb-4">
+                    <select id="riftMultiplierSelect" class="focus:ring-blue-500 focus:border-blue-500">
+                        <option value="1">None</option>
+                        <option value="5">5x</option>
+                        <option value="10">10x</option>
+                        <option value="15">15x</option>
+                        <option value="20">20x</option>
+                        <option value="25">25x</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="divider hidden sm:block"></div> <!-- Divider for larger screens -->
+            <div class="block sm:hidden border-t my-4" style="border-color: var(--divider-color);"></div> <!-- Horizontal divider for small screens -->
+
+            <div class="flex-1 pl-4 sm:pl-8">
+                <p class="text-lg font-semibold mb-3 text-shadow-subtitle" style="color: var(--text-color);">Pet Type Rarity:</p>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="shinyBoostCheckbox">
+                    <label for="shinyBoostCheckbox">Shiny Pet</label>
+                </div>
+
+                <div class="checkbox-container">
+                    <input type="checkbox" id="mythicBoostCheckbox">
+                    <label for="mythicBoostCheckbox">Mythic Pet</label>
+                </div>
+
+                <div class="checkbox-container">
+                    <input type="checkbox" id="shinyMythicBoostCheckbox">
+                    <label for="shinyMythicBoostCheckbox">Shiny Mythic Pet</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 mb-6">
+            <p class="text-lg font-semibold text-shadow-subtitle" style="color: var(--text-color);">Pet Odds:</p>
+            <div class="mb-4">
+                <label for="eggTypeSelect" class="block text-sm font-medium mb-2" style="color: var(--text-color);">Egg Type:</label>
+                <select id="eggTypeSelect" class="w-full p-2 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    <!-- Options populated by JavaScript -->
+                </select>
+            </div>
+            <div id="secretPetContainer" class="secret-pet-container hidden-transition">
+                <div class="mb-4">
+                    <label for="secretPetSelect" class="block text-sm font-medium mb-2" style="color: var(--text-color);">Secret Pet:</label>
+                    <select id="secretPetSelect" class="w-full p-2 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
+                        <option value="">Select Secret Pet</option>
+                    </select>
+                </div>
+                <div id="secretPetRarityDisplay" class="text-sm font-medium" style="color: var(--text-color);"></div>
+            </div>
+        </div>
+
+
+        <button id="calculateButton">Calculate Odds</button>
+
+        <div class="result-box" id="results">
+            <div class="result-item">
+                <span class="result-label">Effective Chance Per Egg:</span>
+                <span class="result-value" id="effectiveChancePerEgg">N/A</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Overall Probability:</span>
+                <span class="result-value" id="overallProbability">N/A</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Estimated Time to Hatch:</span>
+                <span class="result-value" id="estimatedTime">N/A</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to DOM elements
+            const baseChanceInput = document.getElementById('baseChanceInput');
+            const luckBoostInput = document.getElementById('luckBoostInput');
+            const eggsHatchedInput = document.getElementById('eggsHatchedInput');
+            const hatchSpeedBoostInput = document.getElementById('hatchSpeedBoostInput');
+            const totalElixirMultiplierInput = document.getElementById('totalElixirMultiplierInput');
+            
+            const shinyBoostCheckbox = document.getElementById('shinyBoostCheckbox');
+            const mythicBoostCheckbox = document.getElementById('mythicBoostCheckbox');
+            const shinyMythicBoostCheckbox = document.getElementById('shinyMythicBoostCheckbox');
+            const riftMultiplierSelect = document.getElementById('riftMultiplierSelect');
+            const calculateButton = document.getElementById('calculateButton');
+            const effectiveChancePerEggDisplay = document.getElementById('effectiveChancePerEgg');
+            const overallProbabilityDisplay = document.getElementById('overallProbability');
+            const estimatedTimeDisplay = document.getElementById('estimatedTime');
+
+            // New DOM elements for settings
+            const settingsButton = document.getElementById('settingsButton');
+            const settingsPanel = document.getElementById('settingsPanel');
+            const closeSettingsButton = document.getElementById('closeSettingsButton');
+            const themeSelect = document.getElementById('themeSelect');
+
+            // Custom Theme Elements
+            const customThemeInputs = document.getElementById('customThemeInputs');
+            const customBodyBgColor = document.getElementById('customBodyBgColor');
+            const customContainerBgColor = document.getElementById('customContainerBgColor');
+            const customTextColor = document.getElementById('customTextColor');
+            const customAccentColor = document.getElementById('customAccentColor');
+            const saveCustomThemeButton = document.getElementById('saveCustomThemeButton');
+
+            // New DOM elements for Pet Odds
+            const eggTypeSelect = document.getElementById('eggTypeSelect');
+            const secretPetSelect = document.getElementById('secretPetSelect');
+            const secretPetRarityDisplay = document.getElementById('secretPetRarityDisplay');
+            const secretPetContainer = document.getElementById('secretPetContainer');
+
+
+            // Default base hatch speed (e.g., 1 egg per second without any boost)
+            const BASE_HATCH_SPEED_EPS = 1;
+
+            // Updated Pet Data: Only "Permanent" category remains, plus "None"
+            const petData = {
+                "None": [], // Empty array for "None" category
+                "Permanent": [ // Added new "Permanent" category
+                    { name: "Overlord", rarity: 50000000 }, // 1/50M
+                    { name: "King Doggy", rarity: 100000000 }, // 1/100M
+                    { name: "Mech Robot", rarity: 66666667 }, // Approx 1/66.66M
+                    { name: "Hyperwave Kitty", rarity: 125000000 }, // 1/125M
+                    { name: "Royal Guardian", rarity: 200000000 } // 1/200M
+                ]
+            };
+
+            /**
+             * Converts a hex color to RGB.
+             * @param {string} hex - The hex color string (e.g., "#RRGGBB").
+             * @returns {Array<number>} An array [R, G, B].
+             */
+            function hexToRgb(hex) {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return [r, g, b];
+            }
+
+            /**
+             * Converts an RGB color to hex.
+             * @param {Array<number>} rgb - An array [R, G, B].
+             * @returns {string} The hex color string (e.g., "#RRGGBB").
+             */
+            function rgbToHex(r, g, b) {
+                return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+            }
+
+            /**
+             * Lightens or darkens a hex color by a percentage.
+             * @param {string} hex - The hex color string.
+             * @param {number} percent - Percentage to lighten (positive) or darken (negative).
+             * @returns {string} The new hex color string.
+             */
+            function lightenDarkenHex(hex, percent) {
+                let [r, g, b] = hexToRgb(hex);
+
+                r = Math.min(255, Math.max(0, r + Math.floor(r * percent / 100)));
+                g = Math.min(255, Math.max(0, g + Math.floor(g * percent / 100)));
+                b = Math.min(255, Math.max(0, b + Math.floor(b * percent / 100)));
+
+                return rgbToHex(r, g, b);
+            }
+
+            /**
+             * Determines if a color is light or dark for text contrast.
+             * @param {string} hex - The hex color string.
+             * @returns {string} "black" or "white".
+             */
+            function getContrastTextColor(hex) {
+                const [r, g, b] = hexToRgb(hex);
+                // HSP (Highly Sensitive Poo) equation from http://alienryderflex.com/hsp.html
+                const hsp = Math.sqrt(
+                    0.299 * (r * r) +
+                    0.587 * (g * g) +
+                    0.114 * (b * b)
+                );
+                // Using a threshold of 180 (out of 255) for light/dark
+                return hsp > 180 ? '#000000' : '#ffffff'; // Return black for light, white for dark
+            }
+
+
+            /**
+             * Formats a number as a percentage string.
+             * @param {number} value - The number to format (e.g., 0.05 for 5%).
+             * @param {number} decimalPlaces - Number of decimal places.
+             * @returns {string} Formatted percentage string.
+             */
+            function formatPercentage(value, decimalPlaces = 6) {
+                return (value * 100).toFixed(decimalPlaces) + '%';
+            }
+
+            /**
+             * Formats a probability as a "1 in X" string.
+             * @param {number} probability - The probability (e.g., 0.001).
+             * @returns {string} Formatted "1 in X" string.
+             */
+            function formatOneInX(probability) {
+                if (probability <= 0) return "Impossible";
+                if (probability >= 1) return "1 in 1 (Guaranteed)";
+                return `1 in ${Math.round(1 / probability).toLocaleString()}`;
+            }
+
+            /**
+             * Formats time in seconds into a human-readable string (minutes, hours, days, years).
+             * This function now converts decimal parts into smaller units.
+             * @param {number} totalSeconds - The total time in seconds.
+             * @returns {string} Formatted time string.
+             */
+            function formatTime(totalSeconds) {
+                if (totalSeconds === Infinity) return "Infinite";
+                if (totalSeconds < 0) return "N/A"; // Handle negative time if somehow occurs
+
+                let seconds = Math.round(totalSeconds); // Round to nearest second for display
+
+                const years = Math.floor(seconds / (365.25 * 24 * 60 * 60));
+                seconds -= years * (365.25 * 24 * 60 * 60);
+
+                const days = Math.floor(seconds / (24 * 60 * 60));
+                seconds -= days * (24 * 60 * 60);
+
+                const hours = Math.floor(seconds / (60 * 60));
+                seconds -= hours * (60 * 60);
+
+                const minutes = Math.floor(seconds / 60);
+                seconds -= minutes * 60;
+
+                const parts = [];
+                if (years > 0) parts.push(`${years} year${years !== 1 ? 's' : ''}`);
+                if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+                if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+                if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+                // Only show seconds if there are no larger units, or if it's the only unit
+                if (seconds > 0 || parts.length === 0) parts.push(`${seconds} second${seconds !== 1 ? 's' : ''}`);
+
+                return parts.join(' ');
+            }
+
+
+            /**
+             * Handles mutual exclusivity for pet type checkboxes.
+             * @param {Event} event - The change event from a checkbox.
+             */
+            function handlePetTypeCheckboxChange(event) {
+                const checkboxes = [shinyBoostCheckbox, mythicBoostCheckbox, shinyMythicBoostCheckbox];
+                checkboxes.forEach(cb => {
+                    if (cb !== event.target) {
+                        cb.checked = false;
+                    }
+                });
+                calculateOdds(); // Recalculate after change
+            }
+
+            /**
+             * Parses a string input for large numbers with k, m, b, t abbreviations.
+             * @param {string} inputString - The string to parse (e.g., "100k", "33.3m", "1b").
+             * @returns {number} The parsed numerical value.
+             */
+            function parseAbbreviatedNumber(inputString) {
+                if (typeof inputString !== 'string') {
+                    return parseFloat(inputString); // If it's already a number, just parse it
+                }
+
+                const lowerCaseInput = inputString.toLowerCase().trim();
+                const lastChar = lowerCaseInput.slice(-1);
+                let value = parseFloat(lowerCaseInput);
+
+                if (isNaN(value)) {
+                    // Try to parse if it's like "1/X"
+                    const parts = lowerCaseInput.split('/');
+                    if (parts.length === 2 && !isNaN(parseFloat(parts[1]))) {
+                        return parseFloat(parts[1]);
+                    }
+                    return 1; // Default to 1 if invalid
+                }
+
+                if (lastChar === 'k') {
+                    value *= 1000;
+                } else if (lastChar === 'm') {
+                    value *= 1000000;
+                } else if (lastChar === 'b') {
+                    value *= 1000000000;
+                } else if (lastChar === 't') {
+                    value *= 1000000000000;
+                }
+
+                return value;
+            }
+
+
+            /**
+             * Calculates and displays the odds based on current input values.
+             */
+            function calculateOdds() {
+                // Get and validate input values
+                let baseChanceDenominator = parseAbbreviatedNumber(baseChanceInput.value); // Use new parser
+                const luckBoostPercentage = parseFloat(luckBoostInput.value);
+                const eggsHatched = parseInt(eggsHatchedInput.value, 10);
+                const hatchSpeedBoostPercentage = parseFloat(hatchSpeedBoostInput.value);
+                
+                // Read value from the new total elixir multiplier input
+                const totalElixirMultiplier = parseFloat(totalElixirMultiplierInput.value) || 1; // Default to 1 if invalid
+
+                const hasShinyBoost = shinyBoostCheckbox.checked;
+                const hasMythicBoost = mythicBoostCheckbox.checked;
+                const hasShinyMythicBoost = shinyMythicBoostCheckbox.checked;
+                const selectedRiftMultiplier = parseFloat(riftMultiplierSelect.value);
+
+                // --- Pet Odds Integration ---
+                const selectedPetRarity = secretPetSelect.value;
+                if (eggTypeSelect.value !== "None" && selectedPetRarity && !isNaN(parseFloat(selectedPetRarity))) {
+                    baseChanceDenominator = parseFloat(selectedPetRarity);
+                    // Update the baseChanceInput field to reflect the selected pet's rarity
+                    baseChanceInput.value = baseChanceDenominator.toLocaleString();
+                } else if (eggTypeSelect.value === "None" || baseChanceInput.value === "" || isNaN(parseAbbreviatedNumber(baseChanceInput.value))) {
+                    // If "None" is selected, or if base chance is empty/invalid, default to a common rarity or clear it
+                    // For "None", we explicitly don't want to use a pet rarity, so we'll ensure baseChanceInput is used as is.
+                    // If baseChanceInput is empty or invalid, we can set a default or just let it be invalid.
+                    if (baseChanceInput.value === "" || isNaN(parseAbbreviatedNumber(baseChanceInput.value))) {
+                         baseChanceDenominator = 33333334; // Default if no pet selected and input is empty/invalid
+                         baseChanceInput.value = baseChanceDenominator.toLocaleString();
+                    }
+                }
+                // --- End Pet Odds Integration ---
+
+
+                // Basic validation
+                if (isNaN(baseChanceDenominator) || baseChanceDenominator < 1) {
+                    effectiveChancePerEggDisplay.textContent = "Invalid Base Chance";
+                    overallProbabilityDisplay.textContent = "Invalid Base Chance";
+                    estimatedTimeDisplay.textContent = "N/A";
+                    return;
+                }
+                if (isNaN(luckBoostPercentage) || luckBoostPercentage < 0) {
+                    effectiveChancePerEggDisplay.textContent = "Invalid Luck Boost";
+                    overallProbabilityDisplay.textContent = "Invalid Luck Boost";
+                    estimatedTimeDisplay.textContent = "N/A";
+                    return;
+                }
+                if (isNaN(eggsHatched) || eggsHatched < 1) {
+                    effectiveChancePerEggDisplay.textContent = "Invalid Eggs Hatched";
+                    overallProbabilityDisplay.textContent = "Invalid Eggs Hatched";
+                    estimatedTimeDisplay.textContent = "N/A";
+                    return;
+                }
+                if (isNaN(hatchSpeedBoostPercentage) || hatchSpeedBoostPercentage < 0) {
+                    effectiveChancePerEggDisplay.textContent = "Invalid Hatch Speed Boost";
+                    overallProbabilityDisplay.textContent = "Invalid Hatch Speed Boost";
+                    estimatedTimeDisplay.textContent = "N/A";
+                    return;
+                }
+
+                // 1. Calculate the final denominator for the secret rarity
+                // This starts with the base secret rarity and gets harder based on pet type.
+                let currentBaseDenominator = baseChanceDenominator;
+
+                // Apply pet type base rarity multipliers (these make the secret itself harder)
+                if (hasShinyBoost) {
+                    currentBaseDenominator *= 40;
+                } else if (hasMythicBoost) { // Mutually exclusive with ShinyBoost
+                    currentBaseDenominator *= 100;
+                } else if (hasShinyMythicBoost) { // Mutually exclusive with others
+                    currentBaseDenominator *= 4000;
+                }
+
+                // Initial Probability Per Egg (P_base) based on all rarity adjustments
+                let pBase = 1 / currentBaseDenominator;
+
+                // 2. Apply Luck Boost Multiplier (M_luck)
+                // The Rift multiplier now directly affects the base luck boost percentage
+                let mLuck = (1 + (luckBoostPercentage / 100)) * selectedRiftMultiplier;
+
+                // 3. Elixir Multiplier (M_elixir) - now uses the single input value
+                let mElixir = totalElixirMultiplier;
+
+                // 4. Effective Probability Per Egg (P_effective)
+                let pEffective = pBase * mLuck * mElixir;
+
+                // Cap the effective probability at 1 (100%)
+                pEffective = Math.min(pEffective, 1);
+
+                // Display effective chance per egg
+                effectiveChancePerEggDisplay.textContent = `${formatPercentage(pEffective)} (${formatOneInX(pEffective)})`;
+
+                // 5. Probability of NOT getting the secret in one egg (P_not_effective)
+                let pNotEffective = 1 - pEffective;
+
+                // 6. Probability of NOT getting the secret in N eggs (P_not_N_eggs)
+                let pNotNEggs = Math.pow(pNotEffective, eggsHatched);
+
+                // 7. Overall Probability of getting the secret in N eggs (P_overall)
+                let pOverall = 1 - pNotNEggs;
+
+                // Display overall probability
+                overallProbabilityDisplay.textContent = `${formatPercentage(pOverall)} (${formatOneInX(pOverall)})`;
+
+                // 8. Calculate Estimated Time to Hatch
+                let estimatedTimeSeconds = Infinity;
+                if (pEffective > 0) {
+                    const expectedEggsToHatch = 1 / pEffective;
+                    // Calculate actual hatch speed based on boost percentage
+                    const actualHatchSpeed = BASE_HATCH_SPEED_EPS * (1 + (hatchSpeedBoostPercentage / 100));
+                    // Ensure actualHatchSpeed is not zero to prevent division by zero
+                    if (actualHatchSpeed > 0) {
+                        estimatedTimeSeconds = expectedEggsToHatch / actualHatchSpeed;
+                    } else {
+                        estimatedTimeSeconds = Infinity; // If speed is 0, it takes infinite time
+                    }
+                }
+                estimatedTimeDisplay.textContent = formatTime(estimatedTimeSeconds);
+            }
+
+            // --- Pet Odds Functions ---
+
+            /**
+             * Populates the Egg Type dropdown.
+             */
+            function populateEggTypes() {
+                // Clear existing options first, except the default "Select Egg Type"
+                eggTypeSelect.innerHTML = '<option value="">Select Egg Type</option>'; // Default empty option
+                // Add "None" as the first explicit option
+                const noneOption = document.createElement('option');
+                noneOption.value = "None";
+                noneOption.textContent = "None";
+                eggTypeSelect.appendChild(noneOption);
+
+                for (const eggType in petData) {
+                    if (eggType === "None") continue; // Skip "None" as it's added explicitly
+                    const option = document.createElement('option');
+                    option.value = eggType;
+                    option.textContent = eggType;
+                    eggTypeSelect.appendChild(option);
+                }
+                eggTypeSelect.value = "None"; // Set "None" as default selected
+                handleEggTypeChange(); // Call handler to set initial state
+            }
+
+            /**
+             * Handles the change event for the Egg Type dropdown.
+             * Controls visibility of Secret Pet dropdown and populates it.
+             */
+            function handleEggTypeChange() {
+                const selectedEggType = eggTypeSelect.value;
+                if (selectedEggType === "None") {
+                    secretPetContainer.classList.add('hidden-transition');
+                    secretPetSelect.innerHTML = '<option value="">Select Secret Pet</option>'; // Clear pets
+                    secretPetSelect.disabled = true;
+                    secretPetRarityDisplay.textContent = ''; // Clear rarity display
+                    // Do NOT modify baseChanceInput when "None" is selected, let user control it manually
+                } else {
+                    secretPetContainer.classList.remove('hidden-transition');
+                    populateSecretPets(selectedEggType);
+                }
+                calculateOdds(); // Recalculate after egg type change
+            }
+
+            /**
+             * Populates the Secret Pet dropdown based on the selected Egg Type.
+             * @param {string} selectedEggType - The currently selected egg type.
+             */
+            function populateSecretPets(selectedEggType) {
+                secretPetSelect.innerHTML = '<option value="">Select Secret Pet</option>'; // Clear previous options
+                secretPetRarityDisplay.textContent = ''; // Clear rarity display
+
+                if (selectedEggType && petData[selectedEggType]) {
+                    secretPetSelect.disabled = false;
+                    petData[selectedEggType].forEach(pet => {
+                        const option = document.createElement('option');
+                        option.value = pet.rarity; // Store rarity as value
+                        option.textContent = `${pet.name} (1 in ${pet.rarity.toLocaleString()})`;
+                        secretPetSelect.appendChild(option);
+                    });
+                } else {
+                    secretPetSelect.disabled = true;
+                }
+                // No need to call calculateOdds here, as displaySecretPetRarity or handleEggTypeChange will trigger it.
+            }
+
+            /**
+             * Displays the rarity of the selected secret pet and updates baseChanceInput.
+             */
+            function displaySecretPetRarity() {
+                const selectedRarity = secretPetSelect.value;
+                if (selectedRarity) {
+                    const rarityNum = parseFloat(selectedRarity);
+                    secretPetRarityDisplay.textContent = `Selected Rarity: 1 in ${rarityNum.toLocaleString()}`;
+                    baseChanceInput.value = rarityNum.toLocaleString(); // Update base chance input
+                } else {
+                    secretPetRarityDisplay.textContent = '';
+                    // If no specific pet is selected, revert baseChanceInput to its prior value or default
+                    // We don't want to clear it if the user had a manual value there.
+                    // For now, it will just keep whatever was in baseChanceInput.
+                }
+                calculateOdds(); // Recalculate after updating base chance
+            }
+
+            // --- End Pet Odds Functions ---
+
+
+            // Event listeners for settings panel
+            settingsButton.addEventListener('click', () => {
+                settingsPanel.classList.toggle('hidden');
+            });
+
+            closeSettingsButton.addEventListener('click', () => {
+                settingsPanel.classList.add('hidden');
+            });
+
+            themeSelect.addEventListener('change', (event) => {
+                const selectedTheme = event.target.value;
+                applyTheme(selectedTheme);
+                // Show/hide custom theme inputs based on selection
+                if (selectedTheme === 'custom') {
+                    customThemeInputs.classList.remove('hidden');
+                    loadCustomThemeColors(); // Load saved custom colors when custom is selected
+                } else {
+                    customThemeInputs.classList.add('hidden');
+                }
+            });
+
+            // Event listeners for custom theme color inputs
+            customBodyBgColor.addEventListener('input', () => applyCustomThemeLive());
+            customContainerBgColor.addEventListener('input', () => applyCustomThemeLive());
+            customTextColor.addEventListener('input', () => applyCustomThemeLive());
+            customAccentColor.addEventListener('input', () => applyCustomThemeLive());
+            saveCustomThemeButton.addEventListener('click', saveCustomTheme);
+
+            // Function to apply theme
+            function applyTheme(themeName) {
+                document.body.setAttribute('data-theme', themeName);
+                localStorage.setItem('selectedTheme', themeName); // Save preference
+                
+                // If custom theme, apply custom colors
+                if (themeName === 'custom') {
+                    applyCustomThemeLive(); // Apply current values from color pickers
+                } else {
+                    // Reset custom CSS variables if switching from custom theme
+                    document.documentElement.style.removeProperty('--custom-main-bg');
+                    document.documentElement.style.removeProperty('--custom-container-bg');
+                    document.documentElement.style.removeProperty('--custom-text-color');
+                    document.documentElement.style.removeProperty('--custom-accent-color');
+                    document.documentElement.style.removeProperty('--custom-body-gradient-end');
+                    document.documentElement.style.removeProperty('--custom-container-gradient-end');
+                    document.documentElement.style.removeProperty('--custom-input-bg');
+                    document.documentElement.style.removeProperty('--custom-input-border');
+                    document.documentElement.style.removeProperty('--custom-input-gradient-start');
+                    document.documentElement.style.removeProperty('--custom-input-gradient-end');
+                    document.documentElement.style.removeProperty('--custom-result-box-bg');
+                    document.documentElement.style.removeProperty('--custom-result-label-color');
+                    document.documentElement.style.removeProperty('--custom-result-gradient-start');
+                    document.documentElement.style.removeProperty('--custom-result-gradient-end');
+                    document.documentElement.style.removeProperty('--custom-button-text-color');
+                    document.documentElement.style.removeProperty('--custom-accent-hover-color');
+                    document.documentElement.style.removeProperty('--custom-divider-color');
+                }
+
+                // Update text colors for static elements that don't use var(--text-color) by default
+                document.querySelector('h1').style.color = getComputedStyle(document.body).getPropertyValue('--text-color');
+                document.querySelectorAll('label').forEach(label => {
+                    label.style.color = getComputedStyle(document.body).getPropertyValue('--text-color');
+                });
+                document.querySelectorAll('p').forEach(p => {
+                    p.style.color = getComputedStyle(document.body).getPropertyValue('--text-color');
+                });
+
+                // Set settings icon color based on theme
+                const currentTheme = document.body.getAttribute('data-theme');
+                const settingsButton = document.getElementById('settingsButton');
+                if (currentTheme === 'light' || currentTheme === 'bubblegum') {
+                    settingsButton.style.color = 'black'; /* Icon black on light themes */
+                } else {
+                    settingsButton.style.color = 'white'; /* Icon white on dark themes */
+                }
+            }
+
+            // Function to apply custom theme colors live
+            function applyCustomThemeLive() {
+                const mainBg = customBodyBgColor.value;
+                const containerBg = customContainerBgColor.value;
+                const textColor = customTextColor.value;
+                const accentColor = customAccentColor.value;
+
+                // Set primary custom variables
+                document.documentElement.style.setProperty('--custom-main-bg', mainBg);
+                document.documentElement.style.setProperty('--custom-container-bg', containerBg);
+                document.documentElement.style.setProperty('--custom-text-color', textColor);
+                document.documentElement.style.setProperty('--custom-accent-color', accentColor);
+
+                // Derive other colors for gradients and related elements
+                document.documentElement.style.setProperty('--custom-body-gradient-end', lightenDarkenHex(mainBg, -10));
+                document.documentElement.style.setProperty('--custom-container-gradient-end', lightenDarkenHex(containerBg, -10));
+                
+                document.documentElement.style.setProperty('--custom-input-bg', lightenDarkenHex(containerBg, 10));
+                document.documentElement.style.setProperty('--custom-input-border', lightenDarkenHex(containerBg, 20));
+                document.documentElement.style.setProperty('--custom-input-gradient-start', lightenDarkenHex(containerBg, 10));
+                document.documentElement.style.setProperty('--custom-input-gradient-end', containerBg);
+
+                document.documentElement.style.setProperty('--custom-result-box-bg', lightenDarkenHex(mainBg, 10));
+                document.documentElement.style.setProperty('--custom-result-label-color', lightenDarkenHex(textColor, -20));
+                document.documentElement.style.setProperty('--custom-result-gradient-start', lightenDarkenHex(mainBg, 10));
+                document.documentElement.style.setProperty('--custom-result-gradient-end', mainBg);
+
+                document.documentElement.style.setProperty('--custom-button-text-color', getContrastTextColor(accentColor));
+                document.documentElement.style.setProperty('--custom-accent-hover-color', lightenDarkenHex(accentColor, 15));
+                document.documentElement.style.setProperty('--custom-divider-color', lightenDarkenHex(containerBg, 15));
+
+                // Re-apply static text colors to ensure they pick up new custom values
+                document.querySelector('h1').style.color = textColor;
+                document.querySelectorAll('label').forEach(label => {
+                    label.style.color = textColor;
+                });
+                document.querySelectorAll('p').forEach(p => {
+                    p.style.color = textColor;
+                });
+            }
+
+            // Function to save custom theme colors to localStorage
+            function saveCustomTheme() {
+                const customColors = {
+                    bodyBg: customBodyBgColor.value,
+                    containerBg: customContainerBgColor.value,
+                    textColor: customTextColor.value,
+                    accentColor: customAccentColor.value
+                };
+                localStorage.setItem('customThemeColors', JSON.stringify(customColors));
+                // Replaced alert with a simple message box for better user experience
+                const messageBox = document.createElement('div');
+                messageBox.textContent = 'Custom theme saved!';
+                messageBox.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background-color: var(--container-bg);
+                    color: var(--text-color);
+                    padding: 1rem 2rem;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                    z-index: 10000;
+                    opacity: 0;
+                    transition: opacity 0.5s ease-in-out;
+                `;
+                document.body.appendChild(messageBox);
+                setTimeout(() => {
+                    messageBox.style.opacity = 1;
+                }, 10); // Small delay to trigger transition
+                setTimeout(() => {
+                    messageBox.style.opacity = 0;
+                    messageBox.addEventListener('transitionend', () => messageBox.remove());
+                }, 2000); // Hide after 2 seconds
+            }
+
+            // Function to load custom theme colors from localStorage
+            function loadCustomThemeColors() {
+                const savedColors = localStorage.getItem('customThemeColors');
+                if (savedColors) {
+                    const customColors = JSON.parse(savedColors);
+                    customBodyBgColor.value = customColors.bodyBg;
+                    customContainerBgColor.value = customColors.containerBg;
+                    customTextColor.value = customColors.textColor;
+                    customAccentColor.value = customColors.accentColor;
+                }
+                applyCustomThemeLive(); // Apply loaded or default custom colors
+            }
+
+            // Load saved theme on startup
+            const savedTheme = localStorage.getItem('selectedTheme') || 'lava'; // Default to 'lava'
+            applyTheme(savedTheme);
+            themeSelect.value = savedTheme; // Set dropdown to current theme
+
+            // Show custom inputs if custom theme was last selected
+            if (savedTheme === 'custom') {
+                customThemeInputs.classList.remove('hidden');
+                loadCustomThemeColors();
+            }
+
+
+            // Attach event listeners for mutual exclusivity (only for pet types now)
+            shinyBoostCheckbox.addEventListener('change', handlePetTypeCheckboxChange);
+            // Corrected event listeners to point to the common handler
+            mythicBoostCheckbox.addEventListener('change', handlePetTypeCheckboxChange); 
+            shinyMythicBoostCheckbox.addEventListener('change', handlePetTypeCheckboxChange); 
+
+            // Add event listener for the new total elixir multiplier input
+            totalElixirMultiplierInput.addEventListener('input', calculateOdds);
+
+            // Rift select element listener
+            riftMultiplierSelect.addEventListener('change', calculateOdds);
+
+            // Pet Odds event listeners
+            eggTypeSelect.addEventListener('change', handleEggTypeChange); // Use the new handler
+            secretPetSelect.addEventListener('change', displaySecretPetRarity); // This will also call calculateOdds internally
+
+            // Also recalculate when other input values change
+            baseChanceInput.addEventListener('input', calculateOdds);
+            luckBoostInput.addEventListener('input', calculateOdds);
+            eggsHatchedInput.addEventListener('input', calculateOdds);
+            hatchSpeedBoostInput.addEventListener('input', calculateOdds);
+            calculateButton.addEventListener('click', calculateOdds);
+
+
+            // Initial setup and calculation on load with default values
+            populateEggTypes(); // Populate egg types on load
+            calculateOdds();
+        });
+    </script>
+</body>
+</html>

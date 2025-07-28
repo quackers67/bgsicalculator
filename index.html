@@ -624,14 +624,6 @@
                 <input type="color" id="customBodyBgColor" value="#1a202c">
             </label>
             <label>
-                Container Background:
-                <input type="color" id="customContainerBgColor" value="#2d3748">
-            </label>
-            <label>
-                Text Color:
-                <input type="color" id="customTextColor" value="#e2e8f0">
-            </label>
-            <label>
                 Accent Color:
                 <input type="color" id="customAccentColor" value="#63b3ed">
             </label>
@@ -772,9 +764,7 @@
             // Custom Theme Elements
             const customThemeInputs = document.getElementById('customThemeInputs');
             const customBodyBgColor = document.getElementById('customBodyBgColor');
-            const customContainerBgColor = document.getElementById('customContainerBgColor');
-            const customTextColor = document.getElementById('customTextColor');
-            const customAccentColor = document.getElementById('customAccentColor');
+            const customAccentColor = document.getElementById('customAccentColor'); // Simplified custom theme
             const saveCustomThemeButton = document.getElementById('saveCustomThemeButton');
 
             // New DOM elements for Pet Odds
@@ -945,7 +935,7 @@
                     if (parts.length === 2 && !isNaN(parseFloat(parts[1]))) {
                         return parseFloat(parts[1]);
                     }
-                    return 1; // Default to 1 if invalid
+                    return 1; // Default to 1 if invalid, so calculation doesn't break
                 }
 
                 if (lastChar === 'k') {
@@ -966,8 +956,8 @@
              * Calculates and displays the odds based on current input values.
              */
             function calculateOdds() {
-                // Get and validate input values
-                let baseChanceDenominator = parseAbbreviatedNumber(baseChanceInput.value); // Use new parser
+                // Get and validate input values initially from baseChanceInput
+                let baseChanceDenominator = parseAbbreviatedNumber(baseChanceInput.value);
                 const luckBoostPercentage = parseFloat(luckBoostInput.value);
                 const eggsHatched = parseInt(eggsHatchedInput.value, 10);
                 const hatchSpeedBoostPercentage = parseFloat(hatchSpeedBoostInput.value);
@@ -981,24 +971,30 @@
                 const selectedRiftMultiplier = parseFloat(riftMultiplierSelect.value);
 
                 // --- Pet Odds Integration ---
+                const selectedEggType = eggTypeSelect.value; // Get the selected egg type
                 const selectedPetRarity = secretPetSelect.value;
-                if (eggTypeSelect.value !== "None" && selectedPetRarity && !isNaN(parseFloat(selectedPetRarity))) {
+
+                if (selectedEggType !== "None" && selectedPetRarity && !isNaN(parseFloat(selectedPetRarity))) {
+                    // If a specific pet is selected, its rarity overrides the baseChanceInput for calculation
                     baseChanceDenominator = parseFloat(selectedPetRarity);
-                    // Update the baseChanceInput field to reflect the selected pet's rarity
+                    // Also update the baseChanceInput field to reflect the selected pet's rarity
+                    // This is correct behavior for when a pet is actively chosen.
                     baseChanceInput.value = baseChanceDenominator.toLocaleString();
-                } else if (eggTypeSelect.value === "None" || baseChanceInput.value === "" || isNaN(parseAbbreviatedNumber(baseChanceInput.value))) {
-                    // If "None" is selected, or if base chance is empty/invalid, default to a common rarity or clear it
-                    // For "None", we explicitly don't want to use a pet rarity, so we'll ensure baseChanceInput is used as is.
-                    // If baseChanceInput is empty or invalid, we can set a default or just let it be invalid.
+                } else if (selectedEggType === "None") {
+                    // If "None" is selected for Egg Type, we explicitly DO NOT modify baseChanceInput.value.
+                    // The calculation will use whatever the user has manually entered or left empty.
+                    // If baseChanceInput is empty or invalid, the validation below will catch it.
+                    // We only need to ensure baseChanceDenominator is a number for the calculation.
                     if (baseChanceInput.value === "" || isNaN(parseAbbreviatedNumber(baseChanceInput.value))) {
-                         baseChanceDenominator = 33333334; // Default if no pet selected and input is empty/invalid
-                         baseChanceInput.value = baseChanceDenominator.toLocaleString();
+                        baseChanceDenominator = 1; // Use a default for internal calculation if input is empty/invalid
+                    } else {
+                        baseChanceDenominator = parseAbbreviatedNumber(baseChanceInput.value);
                     }
                 }
                 // --- End Pet Odds Integration ---
 
 
-                // Basic validation
+                // Basic validation (using the potentially updated baseChanceDenominator)
                 if (isNaN(baseChanceDenominator) || baseChanceDenominator < 1) {
                     effectiveChancePerEggDisplay.textContent = "Invalid Base Chance";
                     overallProbabilityDisplay.textContent = "Invalid Base Chance";
@@ -1161,9 +1157,8 @@
                     baseChanceInput.value = rarityNum.toLocaleString(); // Update base chance input
                 } else {
                     secretPetRarityDisplay.textContent = '';
-                    // If no specific pet is selected, revert baseChanceInput to its prior value or default
-                    // We don't want to clear it if the user had a manual value there.
-                    // For now, it will just keep whatever was in baseChanceInput.
+                    // If no specific pet is selected, baseChanceInput should retain its manual value.
+                    // No action needed here to clear or default it.
                 }
                 calculateOdds(); // Recalculate after updating base chance
             }
@@ -1194,9 +1189,7 @@
 
             // Event listeners for custom theme color inputs
             customBodyBgColor.addEventListener('input', () => applyCustomThemeLive());
-            customContainerBgColor.addEventListener('input', () => applyCustomThemeLive());
-            customTextColor.addEventListener('input', () => applyCustomThemeLive());
-            customAccentColor.addEventListener('input', () => applyCustomThemeLive());
+            customAccentColor.addEventListener('input', () => applyCustomThemeLive()); // Simplified custom theme
             saveCustomThemeButton.addEventListener('click', saveCustomTheme);
 
             // Function to apply theme
@@ -1250,17 +1243,19 @@
             // Function to apply custom theme colors live
             function applyCustomThemeLive() {
                 const mainBg = customBodyBgColor.value;
-                const containerBg = customContainerBgColor.value;
-                const textColor = customTextColor.value;
-                const accentColor = customAccentColor.value;
+                const accentColor = customAccentColor.value; // Simplified custom theme
 
                 // Set primary custom variables
                 document.documentElement.style.setProperty('--custom-main-bg', mainBg);
-                document.documentElement.style.setProperty('--custom-container-bg', containerBg);
-                document.documentElement.style.setProperty('--custom-text-color', textColor);
                 document.documentElement.style.setProperty('--custom-accent-color', accentColor);
 
                 // Derive other colors for gradients and related elements
+                const containerBg = lightenDarkenHex(mainBg, 15); // Container slightly lighter/darker than main
+                const textColor = getContrastTextColor(mainBg); // Text color based on main background for contrast
+
+                document.documentElement.style.setProperty('--custom-container-bg', containerBg);
+                document.documentElement.style.setProperty('--custom-text-color', textColor);
+
                 document.documentElement.style.setProperty('--custom-body-gradient-end', lightenDarkenHex(mainBg, -10));
                 document.documentElement.style.setProperty('--custom-container-gradient-end', lightenDarkenHex(containerBg, -10));
                 
@@ -1292,9 +1287,7 @@
             function saveCustomTheme() {
                 const customColors = {
                     bodyBg: customBodyBgColor.value,
-                    containerBg: customContainerBgColor.value,
-                    textColor: customTextColor.value,
-                    accentColor: customAccentColor.value
+                    accentColor: customAccentColor.value // Simplified custom theme
                 };
                 localStorage.setItem('customThemeColors', JSON.stringify(customColors));
                 // Replaced alert with a simple message box for better user experience
@@ -1330,9 +1323,7 @@
                 if (savedColors) {
                     const customColors = JSON.parse(savedColors);
                     customBodyBgColor.value = customColors.bodyBg;
-                    customContainerBgColor.value = customColors.containerBg;
-                    customTextColor.value = customColors.textColor;
-                    customAccentColor.value = customColors.accentColor;
+                    customAccentColor.value = customColors.accentColor; // Simplified custom theme
                 }
                 applyCustomThemeLive(); // Apply loaded or default custom colors
             }
